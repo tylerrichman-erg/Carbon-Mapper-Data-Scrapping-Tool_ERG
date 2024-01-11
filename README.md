@@ -14,3 +14,19 @@ The tool contains three seperate chunks to import libraries, initialize paramete
 </ul>
 
 ### Workflow
+
+Facilities are removed from the input table that do not have any coordinates.
+
+The input table is transformed into a spatial data frame.
+
+The coordinates are projected to the NAD 1983 USA Contiguous Equidistant Conic CRS.
+
+A buffer is created for each of the input table points.
+
+The plume locations are read into a spatial data frame from an API endpoint and are projected to the NAD 1983 USA Contiguous Equidistant Conic CRS.
+
+A spatial join is performed between the buffer and plume locations.
+
+For NASA, the result of the spatial join saved in the output folder.
+
+For Carbon Mapper, further processing is done.
