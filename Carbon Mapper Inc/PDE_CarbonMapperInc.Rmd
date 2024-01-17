@@ -1,7 +1,7 @@
 ---
 title: "PDE_CarbonMapperInc"
 author: "tyler.richman@erg.com"
-date: "1/3/2024"
+date: "1/16/2024"
 output: html_document
 ---
 # Plume Data Extraction: Carbon Mapper Inc.
@@ -33,10 +33,10 @@ library("writexl")
 rm(list=ls())
 
 ## Input Excel File Path ##
-excel_file_path <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Carbon Mapper Inc/Test Data/TD9_DRAFT_Targeting-NM_WellsForCarbonMapper_2023-11-08.xlsx"
+excel_file_path <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Test Data/TD9_DRAFT_Targeting-NM_WellsForCarbonMapper_2023-11-08.xlsx"
 
 ## Output Folder ##
-output_folder <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Carbon Mapper Inc/Output"
+output_folder <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Output"
 
 ## Input Column Names for Coordinates ##
 x_field = "LONGITUDE"
@@ -76,7 +76,7 @@ SF_facility <- st_as_sf(
   coords = c(x_field, y_field)
   )
 SF_facility <- st_set_crs(SF_facility, 4269) %>% st_transform("ESRI:102005")
-SF_plume <- st_read(carbonMapperGeoJSON_path) %>% st_transform("ESRI:102005")
+SF_plumes <- st_read(carbonMapperGeoJSON_path) %>% st_transform("ESRI:102005")
 
 ## Create a Buffer with Specified Distance from Facility SF ##
 SF_facility_Buffer <- st_buffer(
@@ -87,7 +87,7 @@ SF_facility_Buffer <- st_buffer(
 ## Spatial Join Facility Buffer SF with Plume SF ##
 SF_joined <- st_join(
   SF_facility_Buffer, 
-  SF_plume, 
+  SF_plumes, 
   join = st_intersects
   )
 
@@ -175,6 +175,21 @@ DF_FINAL <- cbind(
   DF_FINAL[2:length(names(DF_FINAL))],
   DF_temp
 )
+
+## Calculate distance between the two points ##
+DF_FINAL[["geom"]] <- paste0(
+  "LINESTRING (",
+  paste(DF_FINAL[[x_field]], DF_FINAL[[y_field]]),
+  ", ",
+  paste(DF_FINAL[["plume_longitude"]], DF_FINAL[["plume_latitude"]]),
+  ")"
+)
+DF_FINAL <- st_as_sf(DF_FINAL, wkt = "geom")
+DF_FINAL <- st_set_crs(DF_FINAL, 4269) %>% st_transform("ESRI:102005")
+DF_FINAL[["Distance_mi"]] <- st_length(DF_FINAL)
+DF_FINAL[["Distance_mi"]] <- as.numeric(sub("\\[m\\]", "", DF_FINAL[["Distance_mi"]])) / 1609.344
+DF_FINAL <-  as.data.frame(DF_FINAL)
+DF_FINAL <- DF_FINAL[, -which(names(DF_FINAL) == "geom")]
 
 ## Create String Representing the Buffer Distance ##
 buffer_str = gsub("\\.", "p", as.character(bufferDist_mi))

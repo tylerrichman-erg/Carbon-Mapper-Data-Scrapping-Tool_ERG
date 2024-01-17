@@ -1,7 +1,7 @@
 ---
 title: "PDE_NASA"
 author: "Tyler Richman"
-date: "1/8/2024"
+date: "1/16/2024"
 output: html_document
 ---
 # Plume Data Extraction: Carbon Mapper Inc.
@@ -37,10 +37,10 @@ library("jsonlite")
 rm(list=ls())
 
 ## Input Excel File Path ##
-excel_file_path <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Carbon Mapper Inc/Test Data/TD9_DRAFT_Targeting-NM_WellsForCarbonMapper_2023-11-08.xlsx"
+excel_file_path <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Test Data/TD9_DRAFT_Targeting-NM_WellsForCarbonMapper_2023-11-08.xlsx"
 
 ## Output Folder ##
-output_folder <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/NASA/Output"
+output_folder <- "C:/Users/TRichman.ERG/Tyler/Tool Development/Plume Data Extraction/Output"
 
 ## Input Column Names for Coordinates ##
 x_field = "LONGITUDE"
@@ -106,6 +106,9 @@ SF_joined <- st_join(
 DF_joined <-  as.data.frame(SF_joined)
 DF_joined <- DF_joined[, -which(names(DF_joined) == "geometry")]
 
+## Remove Rows without a match ##
+DF_joined <- DF_joined[!is.na(DF_joined[["Plume ID"]]) ,]
+
 ## Create String Representing the Buffer Distance ##
 buffer_str = gsub("\\.", "p", as.character(bufferDist_mi))
 
@@ -114,7 +117,22 @@ today_date <- Sys.Date()
 formatted_date <- format(today_date, "%Y%m%d")
 
 ## Process Final Table ##
-DF_FINAL <- DF_joined[!is.na(DF_joined[["Plume ID"]]) ,]
+DF_FINAL <- DF_joined
+
+## Calculate distance between the two points ##
+DF_FINAL[["geom"]] <- paste0(
+  "LINESTRING (",
+  paste(DF_FINAL[[x_field]], DF_FINAL[[y_field]]),
+  ", ",
+  paste(DF_FINAL[["Longitude of max concentration"]], DF_FINAL[["Latitude of max concentration"]]),
+  ")"
+)
+DF_FINAL <- st_as_sf(DF_FINAL, wkt = "geom")
+DF_FINAL <- st_set_crs(DF_FINAL, 4269) %>% st_transform("ESRI:102005")
+DF_FINAL[["Distance_mi"]] <- st_length(DF_FINAL)
+DF_FINAL[["Distance_mi"]] <- as.numeric(sub("\\[m\\]", "", DF_FINAL[["Distance_mi"]])) / 1609.344
+DF_FINAL <-  as.data.frame(DF_FINAL)
+DF_FINAL <- DF_FINAL[, -which(names(DF_FINAL) == "geom")]
 
 ## Output Spatial Join and Facilities with Missing Coordinates to Excel ##
 out_xlsx_name = paste0(
