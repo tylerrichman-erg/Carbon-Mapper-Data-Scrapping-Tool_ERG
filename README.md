@@ -15,14 +15,6 @@ The tool contains three seperate chunks to import libraries, initialize paramete
 </ul>
 
 ### General Workflow
-The excel file from the input file path is converted into an R data frame. Records that do not have any coordinates are removed from the data frame before being converted into a spatial data frame with the <a href="https://epsg.io/4269">NAD83</a> coordinate reference system (CRS). This spatial data frame is the projected to the <a href="https://epsg.io/102005">NAD 1983 Equidistant Conic contiguous USA</a> CRS. This is a distance perserving projections that allows for accurate distance calculations.
+The excel file from the input file path is converted into an R data frame. Records that do not have any coordinates are removed from the data frame before being converted into a spatial data frame with the <a href="https://epsg.io/4269">NAD83</a> coordinate reference system (CRS). This spatial data frame is then projected to the <a href="https://epsg.io/102005">NAD 1983 Equidistant Conic contiguous USA</a> CRS. This is a distance perserving projection that allows for accurate distance calculations. A buffer with a user specified radius is generated for each record in the spatial data frame.
 
-A buffer is created for each of the input table points.
-
-The plume locations are read into a spatial data frame from an API endpoint and are projected to the NAD 1983 USA Contiguous Equidistant Conic CRS.
-
-A spatial join is performed between the buffer and plume locations.
-
-For NASA, the result of the spatial join saved in the output folder.
-
-For Carbon Mapper, further processing is done.
+Plume data from an API endpoint is converted into a spatial data frame with the <a href="https://epsg.io/102005">NAD 1983 Equidistant Conic contiguous USA</a> CRS. An inner spatial join is performed between the buffer spatial data frame and plume spatial data frame. For Carbon Mapper, the API endpoint contains informations on plume clusters and further processing is required to obtain data on specific plumes. The resulting data frame is converted back to a regular data frame. The distance between the location of interest and associated plume is calculated and added to the data frame. The data frame is the exported to an excel file within a folder specified by the user in the input parameters.
