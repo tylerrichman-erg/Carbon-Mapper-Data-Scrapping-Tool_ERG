@@ -81,7 +81,7 @@ SF_plumes <- st_read(carbonMapperGeoJSON_path) %>% st_transform("ESRI:102005")
 ## Create a Buffer with Specified Distance from Facility SF ##
 SF_facility_Buffer <- st_buffer(
   SF_facility, 
-  dist = units::set_units(bufferDist_mi,"mi")
+  dist = units::set_units(bufferDist_mi + 0.1,"mi")
   )
 
 ## Spatial Join Facility Buffer SF with Plume SF ##
@@ -190,6 +190,8 @@ DF_FINAL[["Distance_mi"]] <- st_length(DF_FINAL)
 DF_FINAL[["Distance_mi"]] <- as.numeric(sub("\\[m\\]", "", DF_FINAL[["Distance_mi"]])) / 1609.344
 DF_FINAL <-  as.data.frame(DF_FINAL)
 DF_FINAL <- DF_FINAL[, -which(names(DF_FINAL) == "geom")]
+
+DF_FINAL <- DF_FINAL[DF_FINAL[["Distance_mi"]] <= bufferDist_mi ,]
 
 ## Create String Representing the Buffer Distance ##
 buffer_str = gsub("\\.", "p", as.character(bufferDist_mi))
