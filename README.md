@@ -14,13 +14,8 @@ The tool contains three seperate chunks to import libraries, initialize paramete
  <li><b>limit (Carbon Mapper only):</b> Number of records obtained per API call (should not have to alter).</li>
 </ul>
 
-### Workflow
-
-Facilities are removed from the input table that do not have any coordinates.
-
-The input table is transformed into a spatial data frame.
-
-The coordinates are projected to the NAD 1983 USA Contiguous Equidistant Conic CRS.
+### General Workflow
+The excel file from the input file path is converted into an R data frame. Records that do not have any coordinates are removed from the data frame before being converted into a spatial data frame with the <a href="https://epsg.io/4269">NAD83</a> coordinate reference system (CRS). This spatial data frame is the projected to the <a href="https://epsg.io/102005">NAD 1983 Equidistant Conic contiguous USA</a> CRS. This is a distance perserving projections that allows for accurate distance calculations.
 
 A buffer is created for each of the input table points.
 
