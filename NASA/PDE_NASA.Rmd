@@ -1,7 +1,7 @@
 ---
 title: "PDE_NASA"
 author: "Tyler Richman"
-date: "1/16/2024"
+date: "1/18/2024"
 output: html_document
 ---
 # Plume Data Extraction: Carbon Mapper Inc.
@@ -54,6 +54,7 @@ bufferDist_mi = 0.5
 
 ## Execute chunk below to obtain plumes
 ```{r execute}
+
 opt <- options(show.error.messages = TRUE)
 on.exit(options(opt))
 
@@ -72,6 +73,14 @@ if (any(is.na(DF[[x_field]])) | any(is.na(DF[[y_field]]))){
   DF <- DF[!(DF[["UID"]] %in% DF_noCoord[["UID"]]),]
 }
 
+## Import and Process NASA Data ##
+DF_plume <- fromJSON(NASAJSON_path)[["features"]][["properties"]]
+DF_plume <- unique(DF_plume[, -which(names(DF_plume) == "style")])
+DF_plume["DAAC Scene Numbers"] <- unlist(lapply(DF_plume["DAAC Scene Numbers"][[1]], function(x) paste(x, collapse = ",")))
+DF_plume["Scene FIDs"] <- unlist(lapply(DF_plume["Scene FIDs"][[1]], function(x) paste(x, collapse = ",")))
+DF_plume["x"] <- DF_plume["Longitude of max concentration"]
+DF_plume["y"] <- DF_plume["Latitude of max concentration"]
+
 ## Create Spatial Data Frames (SFs) for Facilities and Plumes and Transform to NAD 1983 Equidistant Conic contiguous USA CRS ##
 DF["x"] <- DF[x_field]
 DF["y"] <- DF[y_field]
@@ -80,9 +89,6 @@ SF_facility <- st_as_sf(
   coords = c("x", "y")
   )
 SF_facility <- st_set_crs(SF_facility, 4269) %>% st_transform("ESRI:102005")
-DF_plume <- fromJSON(NASAJSON_path)[["features"]][["properties"]]
-DF_plume["x"] <- DF_plume["Longitude of max concentration"]
-DF_plume["y"] <- DF_plume["Latitude of max concentration"]
 SF_plume <- st_as_sf(
   DF_plume, 
   coords = c("x", "y")
