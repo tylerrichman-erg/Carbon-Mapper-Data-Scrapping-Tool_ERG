@@ -1,4 +1,4 @@
-# Plume Data Extraction
+# Carbon Mapper Data Scrapping Tool
 <img src="misc/README_img.PNG" alt="img" style="width:100vw;height:70vh;"/>
 
 ## Overview 
